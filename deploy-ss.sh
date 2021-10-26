@@ -1,13 +1,13 @@
 #!/bin/bash
 
 #Modify the following parameters:
-#PORT=
-#METHOD=
-#PASSWORD=
-#PLUGIN=
-#PLUGIN_OPTS=
-#SERVICE_NAME=
-#SSH_PORT=
+#PORT=random
+METHOD=chacha20-ietf-poly1305
+#PASSWORD=random
+PLUGIN=./v2ray-plugin
+PLUGIN_OPTS=server;host=apple.com
+#SERVICE_NAME=ss-server
+#SSH_PORT=random
 
 if [ "$PORT" == "" ]; then
   PORT=$(shuf -i 2000-20000 -n 1)
@@ -25,7 +25,7 @@ if [ "$PLUGIN_OPTS" == "" ]; then
   PLUGIN_OPTS="server;host=apple.com"
 fi
 if [ "$SERVICE_NAME" == "" ]; then
-  SERVICE_NAME=shadowsocks-rust
+  SERVICE_NAME=ss-server
 fi
 if [ "$SSH_PORT" == "" ]; then
   SSH_PORT=$(shuf -i 2000-20000 -n 1)
