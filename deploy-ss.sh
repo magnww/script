@@ -30,6 +30,7 @@ fi
 if [ "$SSH_PORT" == "" ]; then
   SSH_PORT=$(shuf -i 2000-20000 -n 1)
 fi
+CURR_IP=$(curl -s https://api.ipify.org)
 CURR_SSH_PORT=${SSH_CLIENT##* }
 
 HLST="\033[0;37m\033[41m"
@@ -162,6 +163,7 @@ crontab mycron
 rm mycron
 
 echo "install successs."
+echo -e "         ip: $HLST$CURR_IP$HLED"
 echo -e "       port: $HLST$PORT$HLED"
 echo -e "     method: $HLST$METHOD$HLED"
 echo -e "   password: $HLST$PASSWORD$HLED"
