@@ -30,14 +30,14 @@ fi
 if [ "$SSH_PORT" == "" ]; then
   SSH_PORT=$(shuf -i 2000-20000 -n 1)
 fi
-CURR_IP=$(curl -s https://api.ipify.org)
-CURR_SSH_PORT=${SSH_CLIENT##* }
+
+apt update -y
+apt install -y sudo curl
 
 HLST="\033[0;37m\033[41m"
 HLED="\033[0m"
-
-apt update -y
-apt install -y sudo
+CURR_IP=$(curl -s https://api.ipify.org)
+CURR_SSH_PORT=${SSH_CLIENT##* }
 
 # install iptables
 echo iptables-persistent iptables-persistent/autosave_v4 boolean true | sudo debconf-set-selections
