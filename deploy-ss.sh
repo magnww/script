@@ -2,7 +2,7 @@
 
 # bash <(wget -qO- https://raw.githubusercontent.com/magnww/script/main/deploy-ss.sh)
 
-#Modify the following parameters:
+# Modify the following parameters:
 #PORT=random
 METHOD=chacha20-ietf-poly1305
 #PASSWORD=random
