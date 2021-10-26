@@ -173,7 +173,7 @@ echo -e "plugin opts: $HLST$PLUGIN_OPTS$HLED"
 while true; do
   read -p "Do you want to modify the SSH port to $SSH_PORT now?[Y/n]" yn
   case $yn in
-  [Yy] | *)
+  [Yy] | "")
     sed -i "/Port/c\Port $SSH_PORT" /etc/ssh/sshd_config
     systemctl restart sshd
     iptables -D INPUT -p tcp --dport $CURR_SSH_PORT -j ACCEPT
@@ -182,6 +182,6 @@ while true; do
     service netfilter-persistent save
     break
     ;;
-  [Nn]) exit ;;
+  [Nn]) break ;;
   esac
 done
