@@ -4,9 +4,9 @@
 #PORT=random
 METHOD=chacha20-ietf-poly1305
 #PASSWORD=random
-PLUGIN=./v2ray-plugin
-PLUGIN_OPTS=server;host=apple.com
-#SERVICE_NAME=ss-server
+PLUGIN="./v2ray-plugin"
+PLUGIN_OPTS="server;host=apple.com"
+#SERVICE_NAME="ss-server"
 #SSH_PORT=random
 
 if [ "$PORT" == "" ]; then
