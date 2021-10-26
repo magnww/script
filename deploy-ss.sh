@@ -35,7 +35,7 @@ CURR_SSH_PORT=${SSH_CLIENT##* }
 HLST="\033[0;37m\033[41m"
 HLED="\033[0m"
 
-apt update
+apt update -y
 apt install -y sudo
 
 # install iptables
