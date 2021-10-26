@@ -28,7 +28,7 @@ if [ "$SERVICE_NAME" == "" ]; then
   SERVICE_NAME=shadowsocks-rust
 fi
 if [ "$SSH_PORT" == "" ]; then
-  SSH_PORT=22111
+  SSH_PORT=$(shuf -i 2000-20000 -n 1)
 fi
 CURR_SSH_PORT=${SSH_CLIENT##* }
 
