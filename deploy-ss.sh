@@ -34,7 +34,7 @@ if [ "$SSH_PORT" == "" ]; then
 fi
 
 apt update -y
-apt install -y sudo curl
+apt install -y curl
 
 HLST="\033[0;37m\033[41m"
 HLED="\033[0m"
@@ -42,8 +42,8 @@ CURR_IP=$(curl -s https://api.ipify.org)
 CURR_SSH_PORT=${SSH_CLIENT##* }
 
 # install iptables
-echo iptables-persistent iptables-persistent/autosave_v4 boolean true | sudo debconf-set-selections
-echo iptables-persistent iptables-persistent/autosave_v6 boolean true | sudo debconf-set-selections
+echo iptables-persistent iptables-persistent/autosave_v4 boolean true | debconf-set-selections
+echo iptables-persistent iptables-persistent/autosave_v6 boolean true | debconf-set-selections
 apt install -y iptables iptables-persistent
 
 iptables -P INPUT ACCEPT
@@ -80,10 +80,10 @@ apt install -y \
   curl \
   gnupg \
   lsb-release
-curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor >/usr/share/keyrings/docker-archive-keyring.gpg
+curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor >/usr/share/keyrings/docker-archive-keyring.gpg
 echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian \
-  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
+  $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list >/dev/null
 
 apt update
 apt install -y docker-ce docker-ce-cli containerd.io
