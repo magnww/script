@@ -158,18 +158,15 @@ echo -e "   password: $HLST$PASSWORD$HLED"
 echo -e "     plugin: $HLST$PLUGIN$HLED"
 echo -e "plugin opts: $HLST$PLUGIN_OPTS$HLED"
 
-while true; do
-  read -p "Do you want to modify the SSH port to $SSH_PORT now?[Y/n]" yn
-  case $yn in
-  [Yy] | "")
-    sed -i "/Port/c\Port $SSH_PORT" /etc/ssh/sshd_config
-    systemctl restart sshd
-    iptables -D INPUT -p tcp --dport $CURR_SSH_PORT -j ACCEPT
-    iptables -A INPUT -p tcp --dport $SSH_PORT -j ACCEPT
-    echo -e "SSH port has been changed to $HLST$SSH_PORT$HLED."
-    service netfilter-persistent save
-    break
-    ;;
-  [Nn]) break ;;
-  esac
-done
+read -p "Do you want to modify the SSH port to $SSH_PORT now?[Y/n]" yn
+case $yn in
+[Yy] | "")
+  sed -i "/Port/c\Port $SSH_PORT" /etc/ssh/sshd_config
+  systemctl restart sshd
+  iptables -D INPUT -p tcp --dport $CURR_SSH_PORT -j ACCEPT
+  iptables -A INPUT -p tcp --dport $SSH_PORT -j ACCEPT
+  echo -e "SSH port has been changed to $HLST$SSH_PORT$HLED."
+  service netfilter-persistent save
+  ;;
+[Nn]) ;;
+esac
