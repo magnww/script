@@ -93,7 +93,7 @@ echo "deploy ss..."
 service --status-all | grep -Fq "$SERVICE_NAME"
 
 docker rm -f "$SERVICE_NAME"
-docker create --name="$SERVICE_NAME" \
+docker run -d --name="$SERVICE_NAME" \
   --restart=always \
   -p $PORT:$PORT/tcp \
   -p $PORT:$PORT/udp \
@@ -103,27 +103,6 @@ docker create --name="$SERVICE_NAME" \
   -k "$PASSWORD" \
   --plugin "$PLUGIN" \
   --plugin-opts "$PLUGIN_OPTS"
-
-cat >/etc/systemd/system/$SERVICE_NAME.service <<EOF
-[Unit]
-Description=docker compose
-Requires=docker.service
-After=docker.service
-
-[Service]
-Type=simple
-WorkingDirectory=/opt
-ExecStart=/usr/bin/docker start $SERVICE_NAME
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-if systemctl list-units --full -all | grep -Fq "$SERVICE_NAME"; then
-  systemctl daemon-reload
-fi
-systemctl enable "$SERVICE_NAME"
-systemctl restart "$SERVICE_NAME"
 
 # auto update
 cat >/opt/auto-update.sh <<EOF
@@ -147,9 +126,17 @@ do
     echo "Running:" \$RUNNING
     if [ "\$RUNNING" != "\$LATEST" ];then
         echo "upgrading \$IMAGE"
-        systemctl stop \$SERVICE_NAME
-        docker-compose up --no-start --force-recreate
-        systemctl start \$SERVICE_NAME
+        docker rm -f \$im
+        docker run -d --name="$SERVICE_NAME" \\
+          --restart=always \\
+          -p $PORT:$PORT/tcp \\
+          -p $PORT:$PORT/udp \\
+          lostos/shadowsocks-rust \\
+          -s "0.0.0.0:$PORT" \\
+          -m "$METHOD" \\
+          -k "$PASSWORD" \\
+          --plugin "$PLUGIN" \\
+          --plugin-opts "$PLUGIN_OPTS"
         docker image prune -f
     else
         echo "\$IMAGE up to date"
