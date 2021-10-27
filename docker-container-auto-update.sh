@@ -4,7 +4,6 @@ set -e
 # modify values
 BASE_IMAGE="image"
 REGISTRY="registry"
-SERVICE_NAME="service"
 IMAGE="$REGISTRY/$BASE_IMAGE"
 
 cd $(dirname $0)
@@ -20,9 +19,7 @@ do
     echo "Running:" $RUNNING
     if [ "$RUNNING" != "$LATEST" ];then
         echo "upgrading $IMAGE"
-        systemctl stop $SERVICE_NAME
-        docker-compose up --no-start --force-recreate
-        systemctl start $SERVICE_NAME
+        docker-compose up -d --force-recreate
         docker image prune -f
     else
         echo "$IMAGE up to date"
