@@ -112,7 +112,6 @@ After=docker.service
 
 [Service]
 Type=simple
-RemainAfterExit=true
 WorkingDirectory=/opt
 ExecStart=/usr/bin/docker start $SERVICE_NAME
 
