@@ -127,11 +127,11 @@ do
     if [ "\$RUNNING" != "\$LATEST" ];then
         echo "upgrading \$IMAGE"
         docker rm -f \$im
-        docker run -d --name="$SERVICE_NAME" \\
+        docker run -d --name="\$SERVICE_NAME" \\
           --restart=always \\
           -p $PORT:$PORT/tcp \\
           -p $PORT:$PORT/udp \\
-          lostos/shadowsocks-rust \\
+          \$IMAGE \\
           -s "0.0.0.0:$PORT" \\
           -m "$METHOD" \\
           -k "$PASSWORD" \\
