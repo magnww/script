@@ -108,7 +108,7 @@ docker run -d --name="$SERVICE_NAME" \
 cat >/opt/auto-update.sh <<EOF
 #!/usr/bin/env bash
 set -e
-BASE_IMAGE="shadowsocks-rust"
+BASE_IMAGE="shadowsocks-rust:stable"
 REGISTRY="lostos"
 SERVICE_NAME="$SERVICE_NAME"
 IMAGE="\$REGISTRY/\$BASE_IMAGE"
