@@ -117,6 +117,7 @@ docker run -d --name="$SERVICE_NAME" \
   -p $PORT:$PORT/tcp \
   -p $PORT:$PORT/udp \
   -p $PORT_UDP2RAW:$PORT_UDP2RAW/tcp \
+  -v /etc/udp2raw.conf:/ss/udp2raw.conf \
   lostos/shadowsocks-rust \
   -s "0.0.0.0:$PORT" \
   -m "$METHOD" \
