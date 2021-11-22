@@ -14,6 +14,9 @@ PLUGIN_OPTS="server;host=apple.com"
 if [ "$PORT" == "" ]; then
   PORT=$(shuf -i 2000-20000 -n 1)
 fi
+if [ "$PORT_UDP2RAW" == "" ]; then
+  PORT_UDP2RAW=$(shuf -i 2000-20000 -n 1)
+fi
 if [ "$METHOD" == "" ]; then
   METHOD=chacha20-ietf-poly1305
 fi
@@ -53,6 +56,7 @@ iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 iptables -P INPUT DROP
 iptables -A INPUT -p tcp --dport $PORT -j ACCEPT
 iptables -A INPUT -p udp --dport $PORT -j ACCEPT
+iptables -A INPUT -p tcp --dport $PORT_UDP2RAW -j ACCEPT
 
 if [ "$CURR_SSH_PORT" != "" ]; then
   iptables -A INPUT -p tcp --dport $CURR_SSH_PORT -j ACCEPT
@@ -92,15 +96,32 @@ apt install -y docker-ce docker-ce-cli containerd.io
 echo "deploy ss..."
 service --status-all | grep -Fq "$SERVICE_NAME"
 
+cat >/opt/udp2raw.conf <<EOF
+-s
+# You can add comments like this
+# Comments MUST occupy an entire line
+# Or they will not work as expected
+# Listen address
+-l 0.0.0.0:$PORT_UDP2RAW
+# Remote address
+-r 127.0.0.1:$PORT
+-k $PASSWORD
+--raw-mode faketcp
+-a
+EOF
+
 docker rm -f "$SERVICE_NAME"
 docker run -d --name="$SERVICE_NAME" \
   --restart=always \
+  --privileged=true \
   -p $PORT:$PORT/tcp \
   -p $PORT:$PORT/udp \
+  -p $PORT_UDP2RAW:$PORT_UDP2RAW/tcp \
   lostos/shadowsocks-rust \
   -s "0.0.0.0:$PORT" \
   -m "$METHOD" \
   -k "$PASSWORD" \
+  -U \
   --plugin "$PLUGIN" \
   --plugin-opts "$PLUGIN_OPTS"
 
@@ -129,12 +150,16 @@ do
         docker rm -f \$im
         docker run -d --name="\$SERVICE_NAME" \\
           --restart=always \\
+          --privileged=true \\
           -p $PORT:$PORT/tcp \\
           -p $PORT:$PORT/udp \\
+          -p $PORT_UDP2RAW:$PORT_UDP2RAW/tcp \\
+          -v /etc/udp2raw.conf:/ss/udp2raw.conf \\
           \$IMAGE \\
           -s "0.0.0.0:$PORT" \\
           -m "$METHOD" \\
           -k "$PASSWORD" \\
+          -U \\
           --plugin "$PLUGIN" \\
           --plugin-opts "$PLUGIN_OPTS"
         docker image prune -f
@@ -151,12 +176,13 @@ crontab mycron
 rm mycron
 
 echo "install successs."
-echo -e "         ip: $HLST$CURR_IP$HLED"
-echo -e "       port: $HLST$PORT$HLED"
-echo -e "     method: $HLST$METHOD$HLED"
-echo -e "   password: $HLST$PASSWORD$HLED"
-echo -e "     plugin: $HLST$PLUGIN$HLED"
-echo -e "plugin opts: $HLST$PLUGIN_OPTS$HLED"
+echo -e "          ip: $HLST$CURR_IP$HLED"
+echo -e "        port: $HLST$PORT$HLED"
+echo -e "port udp2raw: $HLST$PORT_UDP2RAW$HLED"
+echo -e "      method: $HLST$METHOD$HLED"
+echo -e "    password: $HLST$PASSWORD$HLED"
+echo -e "      plugin: $HLST$PLUGIN$HLED"
+echo -e " plugin opts: $HLST$PLUGIN_OPTS$HLED"
 
 read -p "Do you want to modify the SSH port to $SSH_PORT now?[Y/n]" yn
 case $yn in
