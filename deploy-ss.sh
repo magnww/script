@@ -96,7 +96,7 @@ apt install -y docker-ce docker-ce-cli containerd.io
 echo "deploy ss..."
 service --status-all | grep -Fq "$SERVICE_NAME"
 
-cat >/opt/udp2raw.conf <<EOF
+cat >/etc/udp2raw.conf <<EOF
 -s
 # You can add comments like this
 # Comments MUST occupy an entire line
