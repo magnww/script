@@ -107,13 +107,12 @@ cat >/etc/udp2raw.conf <<EOF
 -r 127.0.0.1:$PORT
 -k $PASSWORD
 --raw-mode faketcp
--a
+--lower-level auto
 EOF
 
 docker rm -f "$SERVICE_NAME"
 docker run -d --name="$SERVICE_NAME" \
   --restart=always \
-  --privileged=true \
   -p $PORT:$PORT/tcp \
   -p $PORT:$PORT/udp \
   -p $PORT_UDP2RAW:$PORT_UDP2RAW/tcp \
@@ -151,7 +150,6 @@ do
         docker rm -f \$im
         docker run -d --name="\$SERVICE_NAME" \\
           --restart=always \\
-          --privileged=true \\
           -p $PORT:$PORT/tcp \\
           -p $PORT:$PORT/udp \\
           -p $PORT_UDP2RAW:$PORT_UDP2RAW/tcp \\
