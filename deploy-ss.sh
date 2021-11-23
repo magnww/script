@@ -104,10 +104,18 @@ cat >/etc/udp2raw.conf <<EOF
 # Listen address
 -l 0.0.0.0:$PORT_UDP2RAW
 # Remote address
--r 127.0.0.1:$PORT
+-r 127.0.0.1:$PORT_UDP2RAW
 -k $PASSWORD
 --raw-mode faketcp
 --lower-level auto
+EOF
+
+cat >/etc/udpspeeder.conf <<EOF
+-s
+-l 127.0.0.1:$PORT_UDP2RAW
+-r 127.0.0.1:$PORT
+-f 2:4
+-k $PASSWORD
 EOF
 
 docker rm -f "$SERVICE_NAME"
@@ -117,6 +125,7 @@ docker run -d --name="$SERVICE_NAME" \
   -p $PORT:$PORT/udp \
   -p $PORT_UDP2RAW:$PORT_UDP2RAW/tcp \
   -v /etc/udp2raw.conf:/ss/udp2raw.conf \
+  -v /etc/udpspeeder.conf:/ss/udpspeeder.conf \
   lostos/shadowsocks-rust \
   -s "0.0.0.0:$PORT" \
   -m "$METHOD" \
@@ -154,6 +163,7 @@ do
           -p $PORT:$PORT/udp \\
           -p $PORT_UDP2RAW:$PORT_UDP2RAW/tcp \\
           -v /etc/udp2raw.conf:/ss/udp2raw.conf \\
+          -v /etc/udpspeeder.conf:/ss/udpspeeder.conf \\
           \$IMAGE \\
           -s "0.0.0.0:$PORT" \\
           -m "$METHOD" \\
