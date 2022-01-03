@@ -35,6 +35,9 @@ fi
 if [ "$SSH_PORT" == "" ]; then
   SSH_PORT=$(shuf -i 2000-20000 -n 1)
 fi
+if [ "$VNSTAT_PORT" == "" ]; then
+  VNSTAT_PORT=$(shuf -i 2000-20000 -n 1)
+fi
 
 apt update -y
 apt install -y curl
@@ -57,6 +60,7 @@ iptables -P INPUT DROP
 iptables -A INPUT -p tcp --dport $PORT -j ACCEPT
 iptables -A INPUT -p udp --dport $PORT -j ACCEPT
 iptables -A INPUT -p tcp --dport $PORT_UDP2RAW -j ACCEPT
+iptables -A INPUT -p tcp --dport $VNSTAT_PORT -j ACCEPT
 
 if [ "$CURR_SSH_PORT" != "" ]; then
   iptables -A INPUT -p tcp --dport $CURR_SSH_PORT -j ACCEPT
@@ -125,8 +129,10 @@ docker run -d --name="$SERVICE_NAME" \
   -p $PORT:$PORT/tcp \
   -p $PORT:$PORT/udp \
   -p $PORT_UDP2RAW:$PORT_UDP2RAW/tcp \
+  -p $VNSTAT_PORT:8080/tcp \
   -v /etc/udp2raw.conf:/ss/udp2raw.conf \
   -v /etc/udpspeeder.conf:/ss/udpspeeder.conf \
+  -v /mnt/ss-server:/data \
   lostos/shadowsocks-rust \
   -s "0.0.0.0:$PORT" \
   -m "$METHOD" \
@@ -163,8 +169,10 @@ do
           -p $PORT:$PORT/tcp \\
           -p $PORT:$PORT/udp \\
           -p $PORT_UDP2RAW:$PORT_UDP2RAW/tcp \\
+          -p $VNSTAT_PORT:8080/tcp \\
           -v /etc/udp2raw.conf:/ss/udp2raw.conf \\
           -v /etc/udpspeeder.conf:/ss/udpspeeder.conf \\
+          -v /mnt/ss-server:/data \\
           \$IMAGE \\
           -s "0.0.0.0:$PORT" \\
           -m "$METHOD" \\
