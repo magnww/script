@@ -103,9 +103,9 @@ service --status-all | grep -Fq "$SERVICE_NAME"
 cat >/etc/udp2raw.conf <<EOF
 -s
 # Listen address
--l 0.0.0.0:7002
+-l 0.0.0.0:$PORT_UDP2RAW
 # Remote address
--r 127.0.0.1:7002
+-r 127.0.0.1:$PORT_UDP2RAW
 -k $PASSWORD
 --raw-mode faketcp
 --lower-level auto
@@ -113,8 +113,8 @@ EOF
 
 cat >/etc/udpspeeder.conf <<EOF
 -s
--l 127.0.0.1:7002
--r 127.0.0.1:7001
+-l 127.0.0.1:$PORT_UDP2RAW
+-r 127.0.0.1:$PORT
 -f 10:6
 -k $PASSWORD
 --timeout 3
@@ -123,15 +123,15 @@ EOF
 docker rm -f "$SERVICE_NAME"
 docker run -d --name="$SERVICE_NAME" \
   --restart=always \
-  -p $PORT:7001/tcp \
-  -p $PORT:7001/udp \
-  -p $PORT_UDP2RAW:7002/tcp \
+  -p $PORT:$PORT/tcp \
+  -p $PORT:$PORT/udp \
+  -p $PORT_UDP2RAW:$PORT_UDP2RAW/tcp \
   -p $VNSTAT_PORT:8080/tcp \
   -v /etc/udp2raw.conf:/ss/udp2raw.conf \
   -v /etc/udpspeeder.conf:/ss/udpspeeder.conf \
   -v /mnt/ss-server:/data \
   lostos/shadowsocks-rust \
-  -s "0.0.0.0:7001" \
+  -s "0.0.0.0:$PORT" \
   -m "$METHOD" \
   -k "$PASSWORD" \
   -U \
@@ -163,15 +163,15 @@ do
         docker rm -f \$im
         docker run -d --name="\$SERVICE_NAME" \\
           --restart=always \\
-          -p $PORT:7001/tcp \\
-          -p $PORT:7001/udp \\
-          -p $PORT_UDP2RAW:7002/tcp \\
+          -p $PORT:$PORT/tcp \\
+          -p $PORT:$PORT/udp \\
+          -p $PORT_UDP2RAW:$PORT_UDP2RAW/tcp \\
           -p $VNSTAT_PORT:8080/tcp \\
           -v /etc/udp2raw.conf:/ss/udp2raw.conf \\
           -v /etc/udpspeeder.conf:/ss/udpspeeder.conf \\
           -v /mnt/ss-server:/data \\
           \$IMAGE \\
-          -s "0.0.0.0:7001" \\
+          -s "0.0.0.0:$PORT" \\
           -m "$METHOD" \\
           -k "$PASSWORD" \\
           -U \\
