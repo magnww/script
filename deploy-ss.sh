@@ -4,7 +4,7 @@
 
 # Modify the following parameters:
 #PORT=random
-METHOD=chacha20-ietf-poly1305
+METHOD=aes-256-gcm
 #PASSWORD=random
 PLUGIN="./v2ray-plugin"
 PLUGIN_OPTS="server;host=apple.com"
@@ -18,7 +18,7 @@ if [ "$PORT_UDP2RAW" == "" ]; then
   PORT_UDP2RAW=$(shuf -i 2000-20000 -n 1)
 fi
 if [ "$METHOD" == "" ]; then
-  METHOD=chacha20-ietf-poly1305
+  METHOD=aes-256-gcm
 fi
 if [ "$PASSWORD" == "" ]; then
   PASSWORD=$(echo $RANDOM | md5sum | head -c 20)
@@ -130,7 +130,7 @@ docker run -d --name="$SERVICE_NAME" \
   -v /etc/udp2raw.conf:/ss/udp2raw.conf \
   -v /etc/udpspeeder.conf:/ss/udpspeeder.conf \
   -v /mnt/ss-server:/data \
-  lostos/shadowsocks-rust \
+  lostos/shadowsocks-rust:stable \
   -s "0.0.0.0:$PORT" \
   -m "$METHOD" \
   -k "$PASSWORD" \
