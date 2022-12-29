@@ -131,6 +131,7 @@ docker run -d --name="$SERVICE_NAME" \
   -v /etc/udpspeeder.conf:/ss/udpspeeder.conf \
   -v /mnt/ss-server:/data \
   lostos/shadowsocks-rust:stable \
+  server \
   -s "0.0.0.0:$PORT" \
   -m "$METHOD" \
   -k "$PASSWORD" \
@@ -171,6 +172,7 @@ do
           -v /etc/udpspeeder.conf:/ss/udpspeeder.conf \\
           -v /mnt/ss-server:/data \\
           \$IMAGE \\
+          server \\
           -s "0.0.0.0:$PORT" \\
           -m "$METHOD" \\
           -k "$PASSWORD" \\
