@@ -113,7 +113,7 @@ EOF
 
 cat >/etc/udpspeeder.conf <<EOF
 -s
--l 127.0.0.1:$PORT_UDP2RAW
+-l 0.0.0.0:$PORT_UDP2RAW
 -r 127.0.0.1:$PORT
 -f 10:6
 -k $PASSWORD
