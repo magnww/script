@@ -10,6 +10,9 @@ PLUGIN="./v2ray-plugin"
 PLUGIN_OPTS="server;host=apple.com"
 #SERVICE_NAME="ss-server"
 #SSH_PORT=random
+#VNSTAT_PORT=
+KCPTUN_PORT_START=11111
+KCPTUN_PORT_END=11222
 
 if [ "$PORT" == "" ]; then
   PORT=$(shuf -i 2000-20000 -n 1)
@@ -60,7 +63,9 @@ iptables -P INPUT DROP
 iptables -A INPUT -p tcp --dport $PORT -j ACCEPT
 iptables -A INPUT -p udp --dport $PORT -j ACCEPT
 iptables -A INPUT -p tcp --dport $PORT_UDP2RAW -j ACCEPT
+iptables -A INPUT -p udp --dport $PORT_UDP2RAW -j ACCEPT
 iptables -A INPUT -p tcp --dport $VNSTAT_PORT -j ACCEPT
+iptables -A INPUT -p udp --dport $KCPTUN_PORT_START:$KCPTUN_PORT_END -j ACCEPT
 
 if [ "$CURR_SSH_PORT" != "" ]; then
   iptables -A INPUT -p tcp --dport $CURR_SSH_PORT -j ACCEPT
@@ -126,9 +131,12 @@ docker run -d --name="$SERVICE_NAME" \
   -p $PORT:$PORT/tcp \
   -p $PORT:$PORT/udp \
   -p $PORT_UDP2RAW:$PORT_UDP2RAW/tcp \
+  -p $PORT_UDP2RAW:$PORT_UDP2RAW/udp \
   -p $VNSTAT_PORT:8080/tcp \
+  -p $KCPTUN_PORT_START-$KCPTUN_PORT_END:$KCPTUN_PORT_START-$KCPTUN_PORT_END/udp \
   -v /etc/udp2raw.conf:/ss/udp2raw.conf \
   -v /etc/udpspeeder.conf:/ss/udpspeeder.conf \
+  -v /etc/kcptun_server.conf:/ss/kcptun_server.conf \
   -v /mnt/ss-server:/data \
   lostos/shadowsocks-rust:stable \
   server \
@@ -167,9 +175,12 @@ do
           -p $PORT:$PORT/tcp \\
           -p $PORT:$PORT/udp \\
           -p $PORT_UDP2RAW:$PORT_UDP2RAW/tcp \\
+          -p $PORT_UDP2RAW:$PORT_UDP2RAW/udp \\
           -p $VNSTAT_PORT:8080/tcp \\
+          -p $KCPTUN_PORT_START-$KCPTUN_PORT_END:$KCPTUN_PORT_START-$KCPTUN_PORT_END/udp \\
           -v /etc/udp2raw.conf:/ss/udp2raw.conf \\
           -v /etc/udpspeeder.conf:/ss/udpspeeder.conf \\
+          -v /etc/kcptun_server.conf:/ss/kcptun_server.conf \\
           -v /mnt/ss-server:/data \\
           \$IMAGE \\
           server \\
@@ -197,6 +208,7 @@ echo -e "          ip: $HLST$CURR_IP$HLED"
 echo -e "        port: $HLST$PORT$HLED"
 echo -e "port udp2raw: $HLST$PORT_UDP2RAW$HLED"
 echo -e " port vnstat: $HLST$VNSTAT_PORT$HLED"
+echo -e " port kcptun: $HLST$KCPTUN_PORT_START-$KCPTUN_PORT_END$HLED"
 echo -e "      method: $HLST$METHOD$HLED"
 echo -e "    password: $HLST$PASSWORD$HLED"
 echo -e "      plugin: $HLST$PLUGIN$HLED"
