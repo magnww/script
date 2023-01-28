@@ -122,7 +122,7 @@ cat >/etc/udpspeeder.conf <<EOF
 -r 127.0.0.1:$PORT
 -f 10:6
 -k $PASSWORD
---timeout 3
+--timeout 8
 EOF
 
 docker rm -f "$SERVICE_NAME"
