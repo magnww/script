@@ -12,7 +12,7 @@ PLUGIN_OPTS="server;host=apple.com"
 #SSH_PORT=random
 #VNSTAT_PORT=
 KCPTUN_PORT_START=11111
-KCPTUN_PORT_END=11222
+KCPTUN_PORT_END=11122
 
 if [ "$PORT" == "" ]; then
   PORT=$(shuf -i 2000-20000 -n 1)
