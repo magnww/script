@@ -133,7 +133,7 @@ cat >/etc/kcptun_server.conf <<EOF
     "key": "$PASSWORD",
     "crypt": "none",
     "mode": "fast",
-    "mtu": 1344,
+    "mtu": 1196,
     "sndwnd": 128,
     "rcvwnd": 512,
     "datashard": 10,
