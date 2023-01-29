@@ -126,6 +126,36 @@ cat >/etc/udpspeeder.conf <<EOF
 -k $PASSWORD
 EOF
 
+cat >/etc/kcptun_server.conf <<EOF
+{
+    "listen": ":$KCPTUN_PORT_START-$KCPTUN_PORT_END",
+    "target": "127.0.0.1:$PORT",
+    "key": "$PASSWORD",
+    "crypt": "none",
+    "mode": "fast",
+    "mtu": 1344,
+    "sndwnd": 128,
+    "rcvwnd": 512,
+    "datashard": 10,
+    "parityshard": 3,
+    "dscp": 46,
+    "nocomp": true,
+    "acknodelay": false,
+    "nodelay": 1,
+    "interval": 40,
+    "resend": 2,
+    "nc": 1,
+    "sockbuf": 4194304,
+    "smuxver": 2,
+    "smuxbuf": 4194304,
+    "streambuf": 1048576,
+    "keepalive": 10,
+    "pprof":false,
+    "quiet":false,
+    "tcp":false
+}
+EOF
+
 docker rm -f "$SERVICE_NAME"
 docker run -d --name="$SERVICE_NAME" \
   --restart=always \
