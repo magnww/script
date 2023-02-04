@@ -103,6 +103,7 @@ BASE_IMAGE="caddy-naive"
 REGISTRY="lostos"
 SERVICE_NAME="caddy"
 IMAGE="\$REGISTRY/\$BASE_IMAGE"
+
 docker run -d --name="\$SERVICE_NAME" \\
     --restart=always \\
     -p 80:80/tcp \\
