@@ -13,9 +13,13 @@ PLUGIN_OPTS="server;host=apple.com"
 #VNSTAT_PORT=
 KCPTUN_PORT_START=11111
 KCPTUN_PORT_END=11122
+CHISEL_PORT=3110
 
 if [ "$PORT" == "" ]; then
   PORT=$(shuf -i 2000-20000 -n 1)
+fi
+if [ "$PORT_UDPSPEEDER" == "" ]; then
+  PORT_UDPSPEEDER=$(shuf -i 2000-20000 -n 1)
 fi
 if [ "$PORT_UDP2RAW" == "" ]; then
   PORT_UDP2RAW=$(shuf -i 2000-20000 -n 1)
@@ -62,10 +66,12 @@ iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 iptables -P INPUT DROP
 iptables -A INPUT -p tcp --dport $PORT -j ACCEPT
 iptables -A INPUT -p udp --dport $PORT -j ACCEPT
+iptables -A INPUT -p udp --dport $PORT_UDPSPEEDER -j ACCEPT
 iptables -A INPUT -p tcp --dport $PORT_UDP2RAW -j ACCEPT
 iptables -A INPUT -p udp --dport $PORT_UDP2RAW -j ACCEPT
 iptables -A INPUT -p tcp --dport $VNSTAT_PORT -j ACCEPT
 iptables -A INPUT -p udp --dport $KCPTUN_PORT_START:$KCPTUN_PORT_END -j ACCEPT
+iptables -A INPUT -p tcp --dport $CHISEL_PORT -j ACCEPT
 
 if [ "$CURR_SSH_PORT" != "" ]; then
   iptables -A INPUT -p tcp --dport $CURR_SSH_PORT -j ACCEPT
@@ -108,9 +114,9 @@ service --status-all | grep -Fq "$SERVICE_NAME"
 cat >/etc/udp2raw.conf <<EOF
 -s
 # Listen address
--l 0.0.0.0:$PORT_UDP2RAW
+-l 0.0.0.0:2012
 # Remote address
--r 127.0.0.1:$PORT_UDP2RAW
+-r 127.0.0.1:2011
 -k $PASSWORD
 --raw-mode faketcp
 --lower-level auto
@@ -118,8 +124,8 @@ EOF
 
 cat >/etc/udpspeeder.conf <<EOF
 -s
--l 0.0.0.0:$PORT_UDP2RAW
--r 127.0.0.1:$PORT
+-l 0.0.0.0:2011
+-r 127.0.0.1:2001
 -f 2:1,4:2,10:3,20:4
 -q 20
 --timeout 8
@@ -129,7 +135,7 @@ EOF
 cat >/etc/kcptun_server.conf <<EOF
 {
     "listen": ":$KCPTUN_PORT_START-$KCPTUN_PORT_END",
-    "target": "127.0.0.1:$PORT",
+    "target": "127.0.0.1:2001",
     "key": "$PASSWORD",
     "crypt": "none",
     "mode": "fast",
@@ -156,32 +162,19 @@ cat >/etc/kcptun_server.conf <<EOF
 }
 EOF
 
-docker rm -f "$SERVICE_NAME"
-docker run -d --name="$SERVICE_NAME" \
-  --restart=always \
-  -p $PORT:$PORT/tcp \
-  -p $PORT:$PORT/udp \
-  -p $PORT_UDP2RAW:$PORT_UDP2RAW/tcp \
-  -p $PORT_UDP2RAW:$PORT_UDP2RAW/udp \
-  -p $VNSTAT_PORT:8080/tcp \
-  -p $KCPTUN_PORT_START-$KCPTUN_PORT_END:$KCPTUN_PORT_START-$KCPTUN_PORT_END/udp \
-  -v /etc/udp2raw.conf:/ss/udp2raw.conf \
-  -v /etc/udpspeeder.conf:/ss/udpspeeder.conf \
-  -v /etc/kcptun_server.conf:/ss/kcptun_server.conf \
-  -v /mnt/ss-server:/data \
-  lostos/shadowsocks-rust:stable \
-  server \
-  -s "0.0.0.0:$PORT" \
-  -m "$METHOD" \
-  -k "$PASSWORD" \
-  -U \
-  --plugin "$PLUGIN" \
-  --plugin-opts "$PLUGIN_OPTS"
+cat >/etc/chisel.conf <<EOF
+server -p 3110
+EOF
 
 # auto update
 cat >/opt/auto-update.sh <<EOF
 #!/usr/bin/env bash
 set -e
+SCRIPT_DIR=\$(
+    cd \$(dirname \${BASH_SOURCE[0]})
+    pwd
+)
+
 BASE_IMAGE="shadowsocks-rust:stable"
 REGISTRY="lostos"
 SERVICE_NAME="$SERVICE_NAME"
@@ -201,38 +194,55 @@ do
     if [ "\$RUNNING" != "\$LATEST" ];then
         echo "upgrading \$IMAGE"
         docker rm -f \$im
-        docker run -d --name="\$SERVICE_NAME" \\
-          --restart=always \\
-          -p $PORT:$PORT/tcp \\
-          -p $PORT:$PORT/udp \\
-          -p $PORT_UDP2RAW:$PORT_UDP2RAW/tcp \\
-          -p $PORT_UDP2RAW:$PORT_UDP2RAW/udp \\
-          -p $VNSTAT_PORT:8080/tcp \\
-          -p $KCPTUN_PORT_START-$KCPTUN_PORT_END:$KCPTUN_PORT_START-$KCPTUN_PORT_END/udp \\
-          -v /etc/udp2raw.conf:/ss/udp2raw.conf \\
-          -v /etc/udpspeeder.conf:/ss/udpspeeder.conf \\
-          -v /etc/kcptun_server.conf:/ss/kcptun_server.conf \\
-          -v /mnt/ss-server:/data \\
-          \$IMAGE \\
-          server \\
-          -s "0.0.0.0:$PORT" \\
-          -m "$METHOD" \\
-          -k "$PASSWORD" \\
-          -U \\
-          --plugin "$PLUGIN" \\
-          --plugin-opts "$PLUGIN_OPTS"
+        \$SCRIPT_DIR/run.sh
+
         docker image prune -f
     else
         echo "\$IMAGE up to date"
     fi
 done
 EOF
-chmod +x /opt/auto-update.sh
+
+cat >/opt/run.sh <<EOF
+BASE_IMAGE="shadowsocks-rust:stable"
+REGISTRY="lostos"
+SERVICE_NAME="$SERVICE_NAME"
+IMAGE="\$REGISTRY/\$BASE_IMAGE"
+
+docker run -d --name="\$SERVICE_NAME" \\
+  --restart=always \\
+  -p $PORT:2001/tcp \\
+  -p $PORT:2001/udp \\
+  -p $PORT_UDPSPEEDER:2011/udp \\
+  -p $PORT_UDP2RAW:2012/tcp \\
+  -p $PORT_UDP2RAW:2012/udp \\
+  -p $CHISEL_PORT:3110/tcp \\
+  -p $VNSTAT_PORT:8080/tcp \\
+  -p $KCPTUN_PORT_START-$KCPTUN_PORT_END:$KCPTUN_PORT_START-$KCPTUN_PORT_END/udp \\
+  -v /etc/udp2raw.conf:/ss/udp2raw.conf \\
+  -v /etc/udpspeeder.conf:/ss/udpspeeder.conf \\
+  -v /etc/kcptun_server.conf:/ss/kcptun_server.conf \\
+  -v /etc/chisel.conf:/ss/chisel.conf \\
+  -v /mnt/ss-server:/data \\
+  \$IMAGE \\
+  server \\
+  -s "0.0.0.0:2001" \\
+  -m "$METHOD" \\
+  -k "$PASSWORD" \\
+  -U \\
+  --plugin "$PLUGIN" \\
+  --plugin-opts "$PLUGIN_OPTS"
+EOF
+
+chmod +x /opt/auto-update.sh /opt/run.sh
 crontab -l >mycron
 sed -i '/\/opt\/auto-update.sh/d' ./mycron
 echo "0 3 * * * /opt/auto-update.sh" >>mycron
 crontab mycron
 rm mycron
+
+docker rm -f "$SERVICE_NAME"
+/opt/run.sh
 
 echo "install successs."
 echo -e "          ip: $HLST$CURR_IP$HLED"
