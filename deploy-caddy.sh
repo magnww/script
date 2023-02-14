@@ -2,6 +2,9 @@
 
 # bash <(wget -qO- https://raw.githubusercontent.com/magnww/script/main/deploy-caddy.sh)
 
+USERNAME=$(echo $RANDOM | md5sum | head -c 20)
+PASSWORD=$(echo $RANDOM | md5sum | head -c 20)
+
 apt update -y
 
 # install iptables
@@ -18,8 +21,8 @@ service netfilter-persistent save
 # enable tcp bbr
 sed -i '/net.core.default_qdisc/d' /etc/sysctl.conf
 sed -i '/net.ipv4.tcp_congestion_control/d' /etc/sysctl.conf
-echo "net.core.default_qdisc = fq" >> /etc/sysctl.conf 
-echo "net.ipv4.tcp_congestion_control = bbr" >> /etc/sysctl.conf
+echo "net.core.default_qdisc = fq" >>/etc/sysctl.conf
+echo "net.ipv4.tcp_congestion_control = bbr" >>/etc/sysctl.conf
 
 # optimize TCP parameters
 sed -i '/net.ipv4.tcp_slow_start_after_idle/d' /etc/sysctl.conf
@@ -44,6 +47,8 @@ echo \
 apt update
 apt install -y docker-ce docker-ce-cli containerd.io
 
+mkdir -p /opt/caddy
+
 cat >/opt/caddy/Caddyfile <<EOF
 {
   order forward_proxy before file_server
@@ -52,7 +57,7 @@ cat >/opt/caddy/Caddyfile <<EOF
 :443, example.com {
   tls me@example.com
   forward_proxy {
-    basic_auth user pass
+    basic_auth $USERNAME $PASSWORD
     hide_ip
     hide_via
     probe_resistance
@@ -120,6 +125,9 @@ sed -i '/\/opt\/caddy\/auto-update.sh/d' ./mycron
 echo "0 3 * * * /opt/caddy/auto-update.sh" >>mycron
 crontab mycron
 rm mycron
+
+docker rm -f "caddy"
+/opt/caddy/run.sh
 
 echo "The installation is complete."
 echo "You need to edit the domain, email, username and password in /opt/caddy/Caddyfile."
