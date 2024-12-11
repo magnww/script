@@ -47,7 +47,7 @@ if [ "$VNSTAT_PORT" == "" ]; then
 fi
 
 apt update -y
-apt install -y curl
+apt install -y curl cron
 
 HLST="\033[0;37m\033[41m"
 HLED="\033[0m"
