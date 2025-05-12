@@ -25,11 +25,13 @@ echo "net.core.default_qdisc = fq" >>/etc/sysctl.conf
 echo "net.ipv4.tcp_congestion_control = bbr" >>/etc/sysctl.conf
 
 # optimize TCP parameters
+sed -i '/net.ipv4.tcp_wmem/d' /etc/sysctl.conf
 sed -i '/net.ipv4.tcp_slow_start_after_idle/d' /etc/sysctl.conf
 sed -i '/net.ipv4.tcp_notsent_lowat/d' /etc/sysctl.conf
 sed -i '/net.ipv4.tcp_fastopen/d' /etc/sysctl.conf
+echo "net.ipv4.tcp_wmem=4096 131072 67108864" >>/etc/sysctl.conf
 echo "net.ipv4.tcp_slow_start_after_idle=0" >>/etc/sysctl.conf
-echo "net.ipv4.tcp_notsent_lowat=16384" >>/etc/sysctl.conf
+echo "net.ipv4.tcp_notsent_lowat=131072" >>/etc/sysctl.conf
 echo "net.ipv4.tcp_fastopen=0" >>/etc/sysctl.conf
 sysctl -p
 
