@@ -29,7 +29,7 @@ sed -i '/net.ipv4.tcp_wmem/d' /etc/sysctl.conf
 sed -i '/net.ipv4.tcp_slow_start_after_idle/d' /etc/sysctl.conf
 sed -i '/net.ipv4.tcp_notsent_lowat/d' /etc/sysctl.conf
 sed -i '/net.ipv4.tcp_fastopen/d' /etc/sysctl.conf
-echo "net.ipv4.tcp_wmem=4096 131072 67108864" >>/etc/sysctl.conf
+echo "net.ipv4.tcp_wmem=4096 131072 8388608" >>/etc/sysctl.conf
 echo "net.ipv4.tcp_slow_start_after_idle=0" >>/etc/sysctl.conf
 echo "net.ipv4.tcp_notsent_lowat=131072" >>/etc/sysctl.conf
 echo "net.ipv4.tcp_fastopen=0" >>/etc/sysctl.conf
@@ -116,8 +116,10 @@ docker run -d --name="\$SERVICE_NAME" \\
     -p 80:80/tcp \\
     -p 443:443/tcp \\
     -p 443:443/udp \\
+    -p 3211:3211/tcp \\
     -v /opt/caddy/Caddyfile:/app/Caddyfile \\
     -v /var/www/html:/var/www/html \\
+	-e UDP_OVER_TCP_PASSWORD=$PASSWORD \\
     \$IMAGE
 EOF
 
