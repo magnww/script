@@ -15,6 +15,7 @@ apt install -y iptables iptables-persistent
 iptables -A INPUT -p tcp --dport 80 -j ACCEPT
 iptables -A INPUT -p tcp --dport 443 -j ACCEPT
 iptables -A INPUT -p udp --dport 443 -j ACCEPT
+iptables -A INPUT -p udp --dport 3211 -j ACCEPT
 
 service netfilter-persistent save
 
@@ -116,7 +117,7 @@ docker run -d --name="\$SERVICE_NAME" \\
     -p 80:80/tcp \\
     -p 443:443/tcp \\
     -p 443:443/udp \\
-    -p 3211:3211/tcp \\
+    -p 3211:3211/udp \\
     -v /opt/caddy/Caddyfile:/app/Caddyfile \\
     -v /var/www/html:/var/www/html \\
 	-e UDP_OVER_TCP_PASSWORD=$PASSWORD \\
