@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# bash <(wget -qO- https://raw.githubusercontent.com/magnww/script/main/deploy-caddy.sh) 
+
 # 遇到错误立即停止执行
 set -e
 
