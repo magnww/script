@@ -42,17 +42,14 @@ ufw allow "$CURR_SSH_PORT"/tcp
 ufw --force enable
 
 echo "=== 3. 优化系统网络参数 (BBR & Debian 13 高性能 UDP 优化) ==="
-# 清理旧配置
-sed -i '/net.core.default_qdisc/d' /etc/sysctl.conf
-sed -i '/net.ipv4.tcp_congestion_control/d' /etc/sysctl.conf
-sed -i '/net.ipv4.tcp_wmem/d' /etc/sysctl.conf
-sed -i '/net.ipv4.tcp_slow_start_after_idle/d' /etc/sysctl.conf
-sed -i '/net.ipv4.tcp_notsent_lowat/d' /etc/sysctl.conf
-sed -i '/net.ipv4.tcp_fastopen/d' /etc/sysctl.conf
-sed -i '/net.core.rmem_max/d' /etc/sysctl.conf
-sed -i '/net.core.wmem_max/d' /etc/sysctl.conf
 
-cat >>/etc/sysctl.conf <<EOF
+# 定义一个独立的配置文件，专门存放自定义网络优化参数
+SYSCTL_CONF="/etc/sysctl.d/99-network-optimize.conf"
+
+# 直接清空或创建该文件，避免用 sed 去修改旧文件报错
+rm -f "$SYSCTL_CONF"
+
+cat > "$SYSCTL_CONF" <<EOF
 # TCP BBR 优化
 net.core.default_qdisc = fq
 net.ipv4.tcp_congestion_control = bbr
@@ -61,11 +58,13 @@ net.ipv4.tcp_slow_start_after_idle = 0
 net.ipv4.tcp_notsent_lowat = 131072
 net.ipv4.tcp_fastopen = 3
 
-# QUIC / UDP 缓冲区优化 (Debian 13 内核必备，防止 NaiveProxy/QUIC 严重丢包)
+# QUIC / UDP 缓冲区优化 (Debian 13 内核必备)
 net.core.rmem_max = 2500000
 net.core.wmem_max = 2500000
 EOF
-sysctl -p
+
+# 应用所有 sysctl 配置（包括 sysctl.d 目录下的新文件）
+sysctl --system
 
 echo "=== 4. 安装 Docker (兼容 Debian 13 trixie) ==="
 if ! command -v docker &> /dev/null; then
