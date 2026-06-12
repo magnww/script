@@ -123,6 +123,7 @@ docker run -d --name="caddy" \\
     -p 80:80/tcp \\
     -p 443:443/tcp \\
     -p 443:443/udp \\
+    -p 3211:3211/tcp \\
     -p 3211:3211/udp \\
     -v /opt/caddy/Caddyfile:/app/Caddyfile \\
     -v /var/www/html:/var/www/html \\
