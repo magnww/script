@@ -133,6 +133,13 @@ EOF
 
 chmod +x /opt/caddy/auto-update.sh /opt/caddy/run.sh
 
+# 自动处理定时任务 (兼容系统未预装 cron 的情况)
+if ! command -v crontab &> /dev/null; then
+    echo "正在安装传统 cron 组件..."
+    apt install -y cron
+    systemctl enable --now cron
+fi
+
 # 定时任务 (兼容旧版及新版 cron 行为)
 crontab -l 2>/dev/null | grep -v "/opt/caddy/auto-update.sh" > mycron || true
 echo "0 3 * * * /opt/caddy/auto-update.sh" >> mycron
