@@ -71,10 +71,11 @@ fi
 # 生成UUID
 X_UUID=$(docker run --rm ghcr.io/xtls/xray-core uuid)
 
-# 生成 Reality 密钥对（同时输出 Private key 和 Public key）
+# 生成 Reality 密钥对
+# 注意：新版 xray 输出 "PrivateKey:"，旧版为 "Private key:"，均用 $NF 取末尾值兼容
 X25519_OUTPUT=$(docker run --rm ghcr.io/xtls/xray-core x25519)
-X_PRIVATE_KEY=$(echo "$X25519_OUTPUT" | grep "Private key" | awk '{print $3}')
-X_PUBLIC_KEY=$(echo "$X25519_OUTPUT" | grep "Public key" | awk '{print $3}')
+X_PRIVATE_KEY=$(echo "$X25519_OUTPUT" | awk '/[Pp]rivate[ ]?[Kk]ey/ {print $NF}')
+X_PUBLIC_KEY=$(echo "$X25519_OUTPUT" | awk '/[Pp]ublic[ ]?[Kk]ey/ {print $NF}')
 
 # 解析失败立即退出，避免把空密钥写进配置
 if [ -z "$X_PRIVATE_KEY" ] || [ -z "$X_PUBLIC_KEY" ]; then
